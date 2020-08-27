@@ -1,14 +1,21 @@
 import { StormGlass } from '@src/clients/stormGlass';
-import { BeachPosition, Forecast, Beach } from '@src/services/forecast';
+import {
+  BeachPosition,
+  Forecast,
+  Beach,
+  ForecastProcessingInternalError,
+} from '@src/services/forecast';
 import stormglassNormalizedResponseFixture from '@test/fixtures/stormglass_normalized_response_3_hours.json';
 
 jest.mock('@src/clients/stormGlass');
 
 describe('Forecast Service', () => {
+  const mockedStoreGlassService = new StormGlass() as jest.Mocked<StormGlass>;
+
   it('should return the forecast for a list of beaches', async () => {
-    StormGlass.prototype.fetchPoints = jest
-      .fn()
-      .mockResolvedValue(stormglassNormalizedResponseFixture);
+    mockedStoreGlassService.fetchPoints.mockResolvedValue(
+      stormglassNormalizedResponseFixture
+    );
 
     const beaches: Beach[] = [
       {
@@ -83,8 +90,35 @@ describe('Forecast Service', () => {
       },
     ];
 
-    const forecast = new Forecast(new StormGlass());
+    const forecast = new Forecast(mockedStoreGlassService);
     const beachesWithRating = await forecast.processForecastForBeaches(beaches);
     expect(beachesWithRating).toEqual(expectedResponse);
+  });
+
+  it('should return an empty list when the beaches arrays is empty', async () => {
+    const forecast = new Forecast();
+    const response = await forecast.processForecastForBeaches([]);
+    expect(response).toEqual([]);
+  });
+
+  it('should throw internel processing error when something goes wrong during the rate process', async () => {
+    const beaches: Beach[] = [
+      {
+        lat: -33.792726,
+        lng: 151.289824,
+        name: 'Manly',
+        position: BeachPosition.E,
+        user: 'some-id',
+      },
+    ];
+
+    mockedStoreGlassService.fetchPoints.mockRejectedValue(
+      'Error fetching data'
+    );
+
+    const forecast = new Forecast(mockedStoreGlassService);
+    await expect(forecast.processForecastForBeaches(beaches)).rejects.toThrow(
+      ForecastProcessingInternalError
+    );
   });
 });
