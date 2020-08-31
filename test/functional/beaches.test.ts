@@ -1,4 +1,4 @@
-import { Beach } from '@src/models/beach';
+import { Beach, BeachPosition } from '@src/models/beach';
 
 describe('Beaches functional tests', () => {
   beforeAll(async () => await Beach.deleteMany({}));
@@ -9,7 +9,7 @@ describe('Beaches functional tests', () => {
         lat: -33.792726,
         lng: 151.289824,
         name: 'Manly',
-        position: 'E',
+        position: BeachPosition.E,
       };
 
       const response = await global.testRequest.post('/beaches').send(newBeach);
@@ -22,7 +22,7 @@ describe('Beaches functional tests', () => {
         lat: 'invalid_string',
         lng: 151.289824,
         name: 'Manly',
-        position: 'E',
+        position: BeachPosition.E,
       };
 
       const response = await global.testRequest.post('/beaches').send(newBeach);
@@ -32,5 +32,7 @@ describe('Beaches functional tests', () => {
           'Beach validation failed: lat: Cast to Number failed for value "invalid_string" at path "lat"',
       });
     });
+
+    it('should return 500 when there is any error than validation error', async () => {});
   });
 });
