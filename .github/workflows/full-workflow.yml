@@ -30,14 +30,14 @@ jobs:
         run: yarn test
 
       - shell: bash
-          if: github.ref == 'ref/head/master'
+          if: github.ref == 'refs/head/master'
           name: Create SSH deployment key
           env:
             SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           run: ./scripts/deploy.sh
       
       - name: Deployment
-            if: github.ref == 'ref/head/master'
+            if: github.ref == 'refs/head/master'
             run: git remote add umbler ssh://git@kamino.deploy.umbler.com:9922/kz21w22k/surf-beaches-forecast-com.git && git push umbler master
             env:
               CI: true
